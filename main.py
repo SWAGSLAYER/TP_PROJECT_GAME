@@ -1,4 +1,4 @@
-#import os
+import os
 #os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (7,30)
 import pygame
 from pygame.locals import *
@@ -28,15 +28,26 @@ def toggle_fullscreen():
 
 pygame.init()
 x = 30; y = 30
-pl_width = 60; pl_height = 60
-room_width = 1440; room_height = 900
+pl_width = 50; pl_height = 50
+room_width = 1280; room_height = 800
 screen = pygame.display.set_mode((room_width,room_height))
 toggle_fullscreen()
 done = False
 is_blue = True
 move_speed = 15
+back_width = 64; back_height = 64
 clock = pygame.time.Clock()
+_image_library = {}
+def get_image(path):
+        global _image_library
+        image = _image_library.get(path)
+        if image == None:
+                canonicalized_path = path.replace('/', os.sep).replace('\\', os.sep)
+                image = pygame.image.load(canonicalized_path)
+                _image_library[path] = image
+        return image
 
+background = pygame.image.load("grass.png")
 # PLAYER MOVEMENT
 def player_move(turn,speed):
     global x; global y
@@ -50,9 +61,14 @@ while not done:
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                         done = True
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                        is_blue = not is_blue
-        
+        #BACKGROUND DRAW
+        back_x = 0
+        while back_x < room_width:
+                back_y = 0
+                while back_y < room_height:
+                        screen.blit(background, (back_x,back_y))
+                        back_y += back_height
+                back_x += back_width
         pressed = pygame.key.get_pressed()
         if pressed[pygame.K_UP]: player_move("up",move_speed)
         if pressed[pygame.K_DOWN]: player_move("down",move_speed)
@@ -60,10 +76,8 @@ while not done:
         if pressed[pygame.K_RIGHT]: player_move("right",move_speed)
         if pressed[pygame.K_ESCAPE]: pygame.quit()
         
-        screen.fill((0, 0, 0))
-        if is_blue: color = (0, 128, 255)
-        else: color = (255, 100, 0)
-        pygame.draw.rect(screen, color, pygame.Rect(x, y, pl_width, pl_height))
+        screen.blit(get_image('ball.png'), (x, y))
         
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(120)
+
